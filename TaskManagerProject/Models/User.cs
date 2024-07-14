@@ -17,6 +17,6 @@
         public string LastName { get; set; } = string.Empty; // Kullanıcı soyadı
         public DateTime CreatedDate { get; set; } // Oluşturulma tarihi
         public DateTime UpdatedDate { get; set; } // Güncellenme tarihi
-        public UserRole Role { get; set; } = UserRole.Employee; // Kullanıcı rolü (varsayılan: Employee)
+        public Role Role { get; set; } // Role alanı enum türünde olmalı
     }
 }
