@@ -35,6 +35,16 @@ namespace TaskManagerProject.Controllers
         {
             try
             {
+                if (await _context.Users.AnyAsync(u => u.Username == userDto.Username))
+                {
+                    return BadRequest(new { message = "Username is already taken" });
+                }
+
+                if (await _context.Users.AnyAsync(u => u.Email == userDto.Email))
+                {
+                    return BadRequest(new { message = "Email is already registered" });
+                }
+
                 var user = new User
                 {
                     Username = userDto.Username,
@@ -58,6 +68,7 @@ namespace TaskManagerProject.Controllers
                 return StatusCode(500, new { message = "An internal server error occurred." });
             }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
