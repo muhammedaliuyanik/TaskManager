@@ -51,7 +51,14 @@
                     },
                     body: JSON.stringify(data)
                 });
-                const result = await response.json();
+
+                let result;
+                try {
+                    result = await response.json();
+                } catch (error) {
+                    throw new Error('Response is not valid JSON: ' + await response.text());
+                }
+
                 if (response.ok) {
                     localStorage.setItem('token', result.token);
                     alert('Login successful!');
@@ -85,7 +92,14 @@
                     },
                     body: JSON.stringify(data)
                 });
-                const result = await response.json();
+
+                let result;
+                try {
+                    result = await response.json();
+                } catch (error) {
+                    throw new Error('Response is not valid JSON: ' + await response.text());
+                }
+
                 if (response.ok) {
                     alert('Profile updated successfully!');
                 } else {

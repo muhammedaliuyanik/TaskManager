@@ -45,18 +45,18 @@ namespace TaskManagerProject.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
             {
-                return Unauthorized(); // Yetkilendirme hatası
+                return BadRequest(new { message = "Username or password is incorrect" });
             }
 
             var token = GenerateJwtToken(user);
-
-            return Ok(new { Token = token });
+            return Ok(new { token });
         }
+
 
         private string GenerateJwtToken(User user)
         {
