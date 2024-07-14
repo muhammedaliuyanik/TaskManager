@@ -53,10 +53,11 @@
                 });
 
                 let result;
-                try {
+                if (response.headers.get('content-type')?.includes('application/json')) {
                     result = await response.json();
-                } catch (error) {
-                    throw new Error('Response is not valid JSON: ' + await response.text());
+                } else {
+                    const text = await response.text();
+                    throw new Error('Response is not valid JSON: ' + text);
                 }
 
                 if (response.ok) {
@@ -94,10 +95,11 @@
                 });
 
                 let result;
-                try {
+                if (response.headers.get('content-type')?.includes('application/json')) {
                     result = await response.json();
-                } catch (error) {
-                    throw new Error('Response is not valid JSON: ' + await response.text());
+                } else {
+                    const text = await response.text();
+                    throw new Error('Response is not valid JSON: ' + text);
                 }
 
                 if (response.ok) {
