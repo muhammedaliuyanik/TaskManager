@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagerProject.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using BCrypt.Net;
 
 namespace TaskManagerProject.Controllers
 {
@@ -10,43 +15,82 @@ namespace TaskManagerProject.Controllers
     public class UserController : ControllerBase
     {
         private readonly DatabaseContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UserController(DatabaseContext context)
+        public UserController(DatabaseContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(User user)
+        public async Task<IActionResult> Register(UserDto userDto)
         {
-            // Registration logic
+            var user = new User
+            {
+                Username = userDto.Username, // Kullanıcı adı atanıyor
+                Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password), // Şifre hashleniyor
+                Email = userDto.Email, // Kullanıcı emaili
+                FirstName = userDto.FirstName, // Kullanıcı adı
+                LastName = userDto.LastName, // Kullanıcı soyadı
+                CreatedDate = DateTime.UtcNow, // Oluşturulma tarihi
+                UpdatedDate = DateTime.UtcNow, // Güncellenme tarihi
+                Role = UserRole.Employee // Varsayılan rol: Employee
+            };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
             return Ok(user);
         }
 
         [HttpPost("login")]
-        public IActionResult Login(User user)
+        public async Task<IActionResult> Login(LoginDto loginDto)
         {
-            // Login logic
-            return Ok();
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
+            {
+                return Unauthorized(); // Yetkilendirme hatası
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(new { Token = token });
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["AppSettings:Secret"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim("id", user.UserId.ToString()), new Claim(ClaimTypes.Role, user.Role.ToString()) }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         [HttpPut("updateProfile")]
-        public async Task<IActionResult> UpdateProfile(User user)
+        public async Task<IActionResult> UpdateProfile(UserDto userDto)
         {
-            // Profile update logic
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return Ok(user);
-        }
+            var user = await _context.Users.FindAsync(userDto.UserId);
+            if (user == null)
+            {
+                return NotFound(); // Kullanıcı bulunamadı hatası
+            }
 
-        [HttpPut("updateUser")]
-        public async Task<IActionResult> UpdateUser(User user)
-        {
-            // User update logic
+            user.Username = userDto.Username; // Kullanıcı adı güncelleniyor
+            user.Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password); // Şifre güncelleniyor ve hashleniyor
+            user.Email = userDto.Email; // Email güncelleniyor
+            user.FirstName = userDto.FirstName; // Ad güncelleniyor
+            user.LastName = userDto.LastName; // Soyad güncelleniyor
+            user.UpdatedDate = DateTime.UtcNow; // Güncellenme tarihi ayarlanıyor
+
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
             return Ok(user);
         }
     }

@@ -6,12 +6,10 @@ namespace TaskManagerProject.Models
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
-            Users = Set<User>();
-            Tasks = Set<Task>();
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Task> Tasks { get; set; }
+        public DbSet<User> Users { get; set; } = null!; // Users tablosu
+        public DbSet<Task> Tasks { get; set; } = null!; // Tasks tablosu
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

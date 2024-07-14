@@ -1,39 +1,22 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace TaskManagerProject.Models
+﻿namespace TaskManagerProject.Models
 {
-    public class User
-    {
-        [Key]
-        public int UserId { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public required string Username { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public required string Password { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        [EmailAddress]
-        public required string Email { get; set; }
-
-        [Required]
-        public UserRole Role { get; set; }
-
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime UpdatedDate { get; set; }
-    }
-
     public enum UserRole
     {
-        Admin,
-        ProjectManager,
-        Employee
+        Admin, // Yönetici
+        ProjectManager, // Proje Yöneticisi
+        Employee // Çalışan
+    }
+
+    public class User
+    {
+        public int UserId { get; set; } // Kullanıcı ID'si
+        public string Username { get; set; } = string.Empty; // Kullanıcı adı
+        public string Password { get; set; } = string.Empty; // Kullanıcı şifresi (hashlenmiş)
+        public string Email { get; set; } = string.Empty; // Kullanıcı emaili
+        public string FirstName { get; set; } = string.Empty; // Kullanıcı adı
+        public string LastName { get; set; } = string.Empty; // Kullanıcı soyadı
+        public DateTime CreatedDate { get; set; } // Oluşturulma tarihi
+        public DateTime UpdatedDate { get; set; } // Güncellenme tarihi
+        public UserRole Role { get; set; } = UserRole.Employee; // Kullanıcı rolü (varsayılan: Employee)
     }
 }

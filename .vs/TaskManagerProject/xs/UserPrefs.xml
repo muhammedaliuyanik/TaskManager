@@ -1,4 +1,30 @@
 ﻿<Properties StartupConfiguration="{88F6E5C9-9D6B-4BBB-B9FE-743026B82B92}|https">
-  <MonoDevelop.Ide.ItemProperties.TaskManagerProject FirstBuild="True" />
+  <MonoDevelop.Ide.ItemProperties.TaskManagerProject PreferredExecutionTarget="/Applications/Google Chrome.app" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="TaskManagerProject/AppSettings.cs">
+    <Files>
+      <File FileName="TaskManagerProject/AppSettings.cs" Line="8" Column="1" />
+      <File FileName="TaskManagerProject/Models/Task.cs" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="TaskManagerProject" expanded="True">
+            <Node name="TaskManagerProject">
+              <Node name="Controllers" expanded="True" />
+              <Node name="Migrations" expanded="True" />
+              <Node name="Models" expanded="True" />
+              <Node name="Properties" expanded="True" />
+              <Node name="AppSettings.cs" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
   <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
 </Properties>
