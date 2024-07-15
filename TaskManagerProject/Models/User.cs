@@ -4,7 +4,8 @@
     {
         Admin, // Yönetici
         ProjectManager, // Proje Yöneticisi
-        Employee // Çalışan
+        Employee, // Çalışan
+        User // Kullanıcı
     }
 
     public class User
@@ -17,6 +18,7 @@
         public string LastName { get; set; } = string.Empty; // Kullanıcı soyadı
         public DateTime CreatedDate { get; set; } // Oluşturulma tarihi
         public DateTime UpdatedDate { get; set; } // Güncellenme tarihi
-        public Role Role { get; set; } // Role alanı enum türünde olmalı
+        public UserRole Role { get; set; } // Role alanı enum türünde olmalı
+        public ICollection<Task> Tasks { get; set; } = new List<Task>(); // Kullanıcının görevleri
     }
 }

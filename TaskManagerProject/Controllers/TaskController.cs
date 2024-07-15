@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagerProject.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaskManagerProject.Controllers
 {
@@ -16,24 +16,45 @@ namespace TaskManagerProject.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public async System.Threading.Tasks.Task<IActionResult> GetTasks()
+        {
+            var tasks = await _context.Tasks.ToListAsync();
+            return Ok(tasks);
+        }
+
         [HttpPost]
-        public async Task<IActionResult> CreateTask(TaskManagerProject.Models.Task task)
+        public async System.Threading.Tasks.Task<IActionResult> CreateTask([FromBody] TaskManagerProject.Models.Task task)
         {
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
-            return Ok(task);
+            return CreatedAtAction(nameof(GetTasks), new { id = task.TaskId }, task);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateTask(TaskManagerProject.Models.Task task)
+        [HttpPut("{id}")]
+        public async System.Threading.Tasks.Task<IActionResult> UpdateTask(int id, [FromBody] TaskManagerProject.Models.Task updatedTask)
         {
-            _context.Entry(task).State = EntityState.Modified;
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            task.Title = updatedTask.Title;
+            task.Description = updatedTask.Description;
+            task.DueDate = updatedTask.DueDate;
+            task.AssignedUserId = updatedTask.AssignedUserId;
+            task.Status = updatedTask.Status;
+            task.UpdatedDate = DateTime.UtcNow;
+
+            _context.Entry(task).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
             await _context.SaveChangesAsync();
-            return Ok(task);
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTask(int id)
+        public async System.Threading.Tasks.Task<IActionResult> DeleteTask(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
@@ -43,19 +64,8 @@ namespace TaskManagerProject.Controllers
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
-            return Ok(task);
-        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetTask(int id)
-        {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(task);
+            return NoContent();
         }
     }
 }

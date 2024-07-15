@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TaskManagerProject.Models;
 
 namespace TaskManagerProject.Controllers
@@ -8,9 +9,9 @@ namespace TaskManagerProject.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> _logger)
         {
-            _logger = logger;
+            this._logger = _logger;
         }
 
         public IActionResult Index()
@@ -33,6 +34,7 @@ namespace TaskManagerProject.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Profile()
         {
             return View();

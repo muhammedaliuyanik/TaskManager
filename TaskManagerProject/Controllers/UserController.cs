@@ -10,7 +10,6 @@ using BCrypt.Net;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
-using System.Data;
 
 namespace TaskManagerProject.Controllers
 {
@@ -22,7 +21,6 @@ namespace TaskManagerProject.Controllers
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserController> _logger;
 
-        // _configuration'ı başlatmak için constructor'ı güncelledik
         public UserController(DatabaseContext context, IConfiguration configuration, ILogger<UserController> logger)
         {
             _context = context;
@@ -54,7 +52,7 @@ namespace TaskManagerProject.Controllers
                     LastName = userDto.LastName,
                     CreatedDate = DateTime.UtcNow,
                     UpdatedDate = DateTime.UtcNow,
-                    Role = Role.User // Varsayılan olarak kullanıcı rolü
+                    Role = UserRole.User // Varsayılan olarak kullanıcı rolü
                 };
 
                 _context.Users.Add(user);
@@ -69,27 +67,37 @@ namespace TaskManagerProject.Controllers
             }
         }
 
-
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+{
+    try
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
         {
-            try
-            {
-                var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
-                if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
-                {
-                    return BadRequest(new { message = "Username or password is incorrect" });
-                }
-
-                var token = GenerateJwtToken(user);
-                return Ok(new { token });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while logging in.");
-                return StatusCode(500, new { message = "An internal server error occurred." });
-            }
+            return BadRequest(new { message = "Username or password is incorrect" });
         }
+
+        var token = GenerateJwtToken(user);
+        return Ok(new
+        {
+            token,
+            user = new
+            {
+                user.Username,
+                user.Email,
+                user.FirstName,
+                user.LastName
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "An error occurred while logging in.");
+        return StatusCode(500, new { message = "An internal server error occurred." });
+    }
+}
+
 
         private string GenerateJwtToken(User user)
         {
@@ -107,7 +115,7 @@ namespace TaskManagerProject.Controllers
                     new Claim("id", user.UserId.ToString()),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddMinutes(15), // Token süresi 15 dakika
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
