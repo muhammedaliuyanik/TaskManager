@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerProject.Models;
-using Microsoft.AspNetCore.Mvc.Rendering; // Bu satırı ekleyin
 
 namespace TaskManagerProject.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class TaskController : Controller
     {
         private readonly DatabaseContext _context;
@@ -18,19 +18,19 @@ namespace TaskManagerProject.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Tasks.Include(t => t.AssignedUser).Include(t => t.Project).ToListAsync());
+            return View(await _context.Tasks.ToListAsync());
+
         }
 
         public IActionResult Create()
         {
-            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username");
-            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title");
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Username");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async System.Threading.Tasks.Task<IActionResult> Create([Bind("TaskId,Title,Description,DueDate,AssignedUserId,ProjectId,Status")] TaskManagerProject.Models.Task task)
+        public async Task<IActionResult> Create(TaskManagerProject.Models.Task task)
         {
             if (ModelState.IsValid)
             {
@@ -38,31 +38,24 @@ namespace TaskManagerProject.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
-            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
             return View(task);
         }
 
-        public async System.Threading.Tasks.Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
-            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
-            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
             return View(task);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async System.Threading.Tasks.Task<IActionResult> Edit(int id, [Bind("TaskId,Title,Description,DueDate,AssignedUserId,ProjectId,Status")] TaskManagerProject.Models.Task task)
+        public async Task<IActionResult> Edit(int id, TaskManagerProject.Models.Task task)
         {
             if (id != task.TaskId)
             {
@@ -89,8 +82,19 @@ namespace TaskManagerProject.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
-            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
+            return View(task);
+        }
+    
+        public async Task<IActionResult> Details(int id)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.AssignedUser)
+                .FirstOrDefaultAsync(m => m.TaskId == id);
+            if (task == null)
+            {
+                return NotFound();
+            }
             return View(task);
         }
 

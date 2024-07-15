@@ -1,0 +1,40 @@
+@model IEnumerable<TaskManagerProject.Models.Task>
+
+@{
+    ViewData["Title"] = "Task List";
+}
+
+<h1>Task List</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Task</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Assigned User</th>
+            <th>Status</th>
+            <th>Project</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Title)</td>
+            <td>@Html.DisplayFor(modelItem => item.Description)</td>
+            <td>@Html.DisplayFor(modelItem => item.DueDate)</td>
+            <td>@Html.DisplayFor(modelItem => item.AssignedUser.Username)</td>
+            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+            <td>@Html.DisplayFor(modelItem => item.Project.Name)</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.TaskId" class="btn btn-primary">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.TaskId" class="btn btn-info">Details</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

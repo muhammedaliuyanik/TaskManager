@@ -9,8 +9,9 @@ namespace TaskManagerProject.Models
             Users = Set<User>();
             Projects = Set<Project>();
             Tasks = Set<Task>();
+            
         }
-
+        
         public DbSet<User> Users { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Task> Tasks { get; set; }

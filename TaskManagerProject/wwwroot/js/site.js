@@ -4,10 +4,14 @@
     const loginLink = document.getElementById('loginLink');
     const registerLink = document.getElementById('registerLink');
     const logoutLink = document.getElementById('logoutLink');
+    const projectsLink = document.getElementById('projectsLink');
+    const tasksLink = document.getElementById('tasksLink');
 
     if (token) {
         profileLink.style.display = 'block';
         logoutLink.style.display = 'block';
+        projectsLink.style.display = 'block';
+        tasksLink.style.display = 'block';
         loginLink.style.display = 'none';
         registerLink.style.display = 'none';
     }
@@ -42,42 +46,41 @@
         });
     }
 
-    if (logoutLink) {
-        logoutLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            logout();
+    async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem('token');
+        const headers = options.headers || {};
+        headers['Authorization'] = `Bearer ${token}`;
+        options.headers = headers;
+        const response = await fetch(url, options);
+        return response;
+    }
+
+    // Example usage
+    if (projectsLink) {
+        projectsLink.addEventListener('click', async () => {
+            const response = await fetchWithAuth('/Project');
+            if (response.ok) {
+                window.location.href = '/Project';
+            } else {
+                alert('Unauthorized');
+            }
         });
     }
 
-    profileLink.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetchWithToken('/Home/Profile');
+    if (tasksLink) {
+        tasksLink.addEventListener('click', async () => {
+            const response = await fetchWithAuth('/Task');
             if (response.ok) {
-                window.location.href = '/Home/Profile';
+                window.location.href = '/Task';
             } else {
-                alert('You need to log in to access the profile page.');
-                window.location.href = '/Home/Login';
+                alert('Unauthorized');
             }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    });
+        });
+    }
 });
 
 function logout() {
     localStorage.removeItem('token');
     alert('Logout successful');
     window.location.href = '/Home/Login';
-}
-
-function fetchWithToken(url, options = {}) {
-    const token = localStorage.getItem('token');
-    if (token) {
-        if (!options.headers) {
-            options.headers = {};
-        }
-        options.headers['Authorization'] = 'Bearer ' + token;
-    }
-    return fetch(url, options);
 }

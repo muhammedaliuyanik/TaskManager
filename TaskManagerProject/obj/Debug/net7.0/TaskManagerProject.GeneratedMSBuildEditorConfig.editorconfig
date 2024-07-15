@@ -62,12 +62,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9VcGRhdGVUYXNrLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/Project/index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvamVjdC9pbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/Task/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvVGFzay9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/Task/index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvVGFzay9pbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/aliuyanik/Desktop/TaskManager/TaskManagerProject/Views/_ViewImports.cshtml]

@@ -5,7 +5,7 @@ using TaskManagerProject.Models;
 
 namespace TaskManagerProject.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class ProjectController : Controller
     {
         private readonly DatabaseContext _context;
@@ -17,7 +17,8 @@ namespace TaskManagerProject.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Projects.ToListAsync());
+             var projects = await _context.Projects.ToListAsync();
+            return View(projects);
         }
 
         public IActionResult Create()
@@ -27,7 +28,7 @@ namespace TaskManagerProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProjectId,Title,Description,StartDate,EndDate")] Project project)
+        public async Task<IActionResult> Create([Bind("ProjectId,Name,Description,StartDate,EndDate")] Project project)
         {
             if (ModelState.IsValid)
             {
@@ -55,7 +56,7 @@ namespace TaskManagerProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProjectId,Title,Description,StartDate,EndDate")] Project project)
+        public async Task<IActionResult> Edit(int id, [Bind("ProjectId,Name,Description,StartDate,EndDate")] Project project)
         {
             if (id != project.ProjectId)
             {
