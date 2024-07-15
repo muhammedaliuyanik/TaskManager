@@ -1,15 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TaskManagerProject.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using TaskManagerProject.Models;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using BCrypt.Net;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace TaskManagerProject.Controllers
 {
@@ -28,45 +25,6 @@ namespace TaskManagerProject.Controllers
             _logger = logger;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserDto userDto)
-        {
-            try
-            {
-                if (await _context.Users.AnyAsync(u => u.Username == userDto.Username))
-                {
-                    return BadRequest(new { message = "Username is already taken" });
-                }
-
-                if (await _context.Users.AnyAsync(u => u.Email == userDto.Email))
-                {
-                    return BadRequest(new { message = "Email is already registered" });
-                }
-
-                var user = new User
-                {
-                    Username = userDto.Username,
-                    Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
-                    Email = userDto.Email,
-                    FirstName = userDto.FirstName,
-                    LastName = userDto.LastName,
-                    CreatedDate = DateTime.UtcNow,
-                    UpdatedDate = DateTime.UtcNow,
-                    Role = UserRole.User // Varsayılan olarak kullanıcı rolü
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "User registered successfully" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while registering a user.");
-                return StatusCode(500, new { message = "An internal server error occurred." });
-            }
-        }
-
         [HttpPost("login")]
 public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
 {
@@ -79,17 +37,8 @@ public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         }
 
         var token = GenerateJwtToken(user);
-        return Ok(new
-        {
-            token,
-            user = new
-            {
-                user.Username,
-                user.Email,
-                user.FirstName,
-                user.LastName
-            }
-        });
+        _logger.LogInformation("Generated JWT token for user: {Username}", user.Username);
+        return Ok(new { token });
     }
     catch (Exception ex)
     {
@@ -98,50 +47,22 @@ public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     }
 }
 
-
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var secretKey = _configuration["AppSettings:Secret"];
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new InvalidOperationException("Secret key is not defined in AppSettings.");
-            }
-            var key = Encoding.ASCII.GetBytes(secretKey);
+            var key = Encoding.ASCII.GetBytes(_configuration["AppSettings:Secret"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("id", user.UserId.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                Subject = new ClaimsIdentity(new[] 
+                { 
+                    new Claim("id", user.UserId.ToString()), 
+                    new Claim(ClaimTypes.Role, user.Role.ToString()) 
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(15), // Token süresi 15 dakika
+                Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
-        }
-
-        [HttpPut("updateProfile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UserDto userDto)
-        {
-            var user = await _context.Users.FindAsync(userDto.UserId);
-            if (user == null)
-            {
-                return NotFound(); // Kullanıcı bulunamadı hatası
-            }
-
-            user.Username = userDto.Username; // Kullanıcı adı güncelleniyor
-            user.Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password); // Şifre güncelleniyor ve hashleniyor
-            user.Email = userDto.Email; // Email güncelleniyor
-            user.FirstName = userDto.FirstName; // Ad güncelleniyor
-            user.LastName = userDto.LastName; // Soyad güncelleniyor
-            user.UpdatedDate = DateTime.UtcNow; // Güncellenme tarihi ayarlanıyor
-
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return Ok(user);
         }
     }
 }

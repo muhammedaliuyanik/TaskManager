@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TaskManagerProject.Models;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TaskManagerProject.Models;
+using Microsoft.AspNetCore.Mvc.Rendering; // Bu satırı ekleyin
 
 namespace TaskManagerProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class TaskController : ControllerBase
+    [Authorize]
+    public class TaskController : Controller
     {
         private readonly DatabaseContext _context;
 
@@ -16,56 +16,87 @@ namespace TaskManagerProject.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async System.Threading.Tasks.Task<IActionResult> GetTasks()
+        public async Task<IActionResult> Index()
         {
-            var tasks = await _context.Tasks.ToListAsync();
-            return Ok(tasks);
+            return View(await _context.Tasks.Include(t => t.AssignedUser).Include(t => t.Project).ToListAsync());
+        }
+
+        public IActionResult Create()
+        {
+            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username");
+            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title");
+            return View();
         }
 
         [HttpPost]
-        public async System.Threading.Tasks.Task<IActionResult> CreateTask([FromBody] TaskManagerProject.Models.Task task)
+        [ValidateAntiForgeryToken]
+        public async System.Threading.Tasks.Task<IActionResult> Create([Bind("TaskId,Title,Description,DueDate,AssignedUserId,ProjectId,Status")] TaskManagerProject.Models.Task task)
         {
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetTasks), new { id = task.TaskId }, task);
+            if (ModelState.IsValid)
+            {
+                _context.Add(task);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
+            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            return View(task);
         }
 
-        [HttpPut("{id}")]
-        public async System.Threading.Tasks.Task<IActionResult> UpdateTask(int id, [FromBody] TaskManagerProject.Models.Task updatedTask)
+        public async System.Threading.Tasks.Task<IActionResult> Edit(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
-
-            task.Title = updatedTask.Title;
-            task.Description = updatedTask.Description;
-            task.DueDate = updatedTask.DueDate;
-            task.AssignedUserId = updatedTask.AssignedUserId;
-            task.Status = updatedTask.Status;
-            task.UpdatedDate = DateTime.UtcNow;
-
-            _context.Entry(task).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
+            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            return View(task);
         }
 
-        [HttpDelete("{id}")]
-        public async System.Threading.Tasks.Task<IActionResult> DeleteTask(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async System.Threading.Tasks.Task<IActionResult> Edit(int id, [Bind("TaskId,Title,Description,DueDate,AssignedUserId,ProjectId,Status")] TaskManagerProject.Models.Task task)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
+            if (id != task.TaskId)
             {
                 return NotFound();
             }
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(task);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!TaskExists(task.TaskId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["Users"] = new SelectList(_context.Users, "UserId", "Username", task.AssignedUserId);
+            ViewData["Projects"] = new SelectList(_context.Projects, "ProjectId", "Title", task.ProjectId);
+            return View(task);
+        }
 
-            return NoContent();
+        private bool TaskExists(int id)
+        {
+            return _context.Tasks.Any(e => e.TaskId == id);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagerProject.Models;
 
 namespace TaskManagerProject.Controllers
@@ -9,9 +9,9 @@ namespace TaskManagerProject.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> _logger)
+        public HomeController(ILogger<HomeController> logger)
         {
-            this._logger = _logger;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -34,11 +34,13 @@ namespace TaskManagerProject.Controllers
             return View();
         }
 
-        [Authorize]
+       
         public IActionResult Profile()
         {
+            _logger.LogInformation("Profile action accessed by user with ID: {UserId}", User.Identity.Name);
             return View();
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

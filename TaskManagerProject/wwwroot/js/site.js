@@ -41,10 +41,43 @@
             }
         });
     }
+
+    if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    profileLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetchWithToken('/Home/Profile');
+            if (response.ok) {
+                window.location.href = '/Home/Profile';
+            } else {
+                alert('You need to log in to access the profile page.');
+                window.location.href = '/Home/Login';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
 });
 
 function logout() {
     localStorage.removeItem('token');
     alert('Logout successful');
     window.location.href = '/Home/Login';
+}
+
+function fetchWithToken(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (token) {
+        if (!options.headers) {
+            options.headers = {};
+        }
+        options.headers['Authorization'] = 'Bearer ' + token;
+    }
+    return fetch(url, options);
 }

@@ -1,14 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManagerProject.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using System;
+using TaskManagerProject.Models;
 
 namespace TaskManagerProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProjectController : ControllerBase
+    [Authorize]
+    public class ProjectController : Controller
     {
         private readonly DatabaseContext _context;
 
@@ -17,37 +15,79 @@ namespace TaskManagerProject.Controllers
             _context = context;
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateProject([FromBody] Project project)
+        public async Task<IActionResult> Index()
         {
-            project.CreatedDate = DateTime.UtcNow;
-            project.UpdatedDate = DateTime.UtcNow;
-
-            _context.Projects.Add(project);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Project created successfully" });
+            return View(await _context.Projects.ToListAsync());
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateProject(int id, [FromBody] Project project)
+        public IActionResult Create()
         {
-            var existingProject = await _context.Projects.FindAsync(id);
-            if (existingProject == null)
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("ProjectId,Title,Description,StartDate,EndDate")] Project project)
+        {
+            if (ModelState.IsValid)
             {
-                return NotFound(new { message = "Project not found" });
+                _context.Add(project);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(project);
+        }
+
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
             }
 
-            existingProject.Name = project.Name;
-            existingProject.Description = project.Description;
-            existingProject.StartDate = project.StartDate;
-            existingProject.EndDate = project.EndDate;
-            existingProject.UpdatedDate = DateTime.UtcNow;
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            return View(project);
+        }
 
-            _context.Entry(existingProject).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("ProjectId,Title,Description,StartDate,EndDate")] Project project)
+        {
+            if (id != project.ProjectId)
+            {
+                return NotFound();
+            }
 
-            return Ok(new { message = "Project updated successfully" });
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(project);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProjectExists(project.ProjectId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(project);
+        }
+
+        private bool ProjectExists(int id)
+        {
+            return _context.Projects.Any(e => e.ProjectId == id);
         }
     }
 }
